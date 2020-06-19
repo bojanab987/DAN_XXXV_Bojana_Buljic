@@ -5,11 +5,15 @@ namespace Zadatak_1
 {
     class Program
     {
+        // number of persons to guess numbers
         static int users;
-        static int number;        
-        static Random rnd = new Random();
-        static object locker = new object();
+        //Randomly generated number that need to be guessed
+        static int number;
+        //object to lock
+        static readonly object locker = new object();
+        //array of threads
         static Thread[] threads;
+        static Random rnd = new Random();
         static Thread secondThread;
 
         /// <summary>
@@ -36,39 +40,44 @@ namespace Zadatak_1
         }
                 
         /// <summary>
-        /// Method where users guessing the number and writes the message to user if some one guessed
+        /// Method where users guessing the number and writes the message to user if some one guessed.
+        /// Guessing performed until someone guess the number selected on the start
         /// </summary>
         static void GuessNumber()
         {
-            lock (locker)
+            int guess = 0;
+            while (guess != number)
             {
-                Thread.Sleep(100);
-                int guess = rnd.Next(1, 101);
-                Console.WriteLine("{0} tries with number {1}", Thread.CurrentThread.Name, guess);
+                guess = rnd.Next(1, 101);
 
-                if (guess == number)
+                lock (locker)
                 {
-                    lock (locker)
+
+                    Thread.Sleep(100);
+
+                    Console.WriteLine("{0} tries with number {1}\n", Thread.CurrentThread.Name, guess);
+
+                    if (guess % 2 == number % 2)
                     {
-                        Console.WriteLine("“Thread_{0} wins, requested number is {1}", Thread.CurrentThread.Name, number);
+                        Console.WriteLine("{0} guessed the parity of number!\n", Thread.CurrentThread.Name);
+                    }
+                    if (guess == number)
+                    {
+
+                        Console.WriteLine("{0} wins, requested number is {1}\n", Thread.CurrentThread.Name, number);
+                        Console.ReadLine();
+                        Environment.Exit(0);
                     }
 
                 }
-                else if (guess % 2 == number % 2)
-                {
-                    Console.WriteLine("{0} guessed the parity of number!", Thread.CurrentThread.Name);
-                }
-                else
-                {
-                    Console.WriteLine("You did not guesed the number nor its parity!");
-                }
-
             }
         }
 
         static void Main(string[] args)
         {
-            
+            Thread firstThread = new Thread(new ThreadStart(GenerateGuessingNo));
+            firstThread.Start();
+            firstThread.Join();
             secondThread.Join();
             Console.ReadLine();
         }
